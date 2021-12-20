@@ -1,0 +1,23 @@
+{
+  "NUMBER_COLORS": 3,
+  "LEVEL_LAYOUT": "       \n       \n       \n       \n       \n       \n       ",
+  "STATIC_OBJECTS": [],
+  "DYNAMIC_OBJECTS": [{"Chip":  {"COUNT": 1, "X_POSITION": [0, 1 ,2, 3, 4, 5, 6], "Y_POSITION":   [0, 1 ,2, 3, 4, 5, 6], "COLOR": 0}},
+    {"Chip":  {"COUNT": 1, "X_POSITION":  [0, 1 ,2, 3, 4, 5, 6], "Y_POSITION":   [0, 1 ,2, 3, 4, 5, 6], "COLOR": 0}},
+    {"Chip":  {"COUNT": 1, "X_POSITION":  [0, 1 ,2, 3, 4, 5, 6], "Y_POSITION":   [0, 1 ,2, 3, 4, 5, 6], "COLOR": 0}},
+    {"Chip":  {"COUNT": 1, "X_POSITION":  [0, 1 ,2, 3, 4, 5, 6], "Y_POSITION":   [0, 1 ,2, 3, 4, 5, 6], "COLOR": 0}},
+    {"Chip":  {"COUNT": 1, "X_POSITION":  [0, 1 ,2, 3, 4, 5, 6], "Y_POSITION":   [0, 1 ,2, 3, 4, 5, 6], "COLOR": 0}},
+    {"Chip":  {"COUNT": 1, "X_POSITION":  [0, 1 ,2, 3, 4, 5, 6], "Y_POSITION":   [0, 1 ,2, 3, 4, 5, 6], "COLOR": 0}},
+    {"Chip":  {"COUNT": 1, "X_POSITION":  [0, 1 ,2, 3, 4, 5, 6], "Y_POSITION":   [0, 1 ,2, 3, 4, 5, 6], "COLOR": 0}},
+    {"Chip":  {"COUNT": 1, "X_POSITION":  [0, 1 ,2, 3, 4, 5, 6], "Y_POSITION":   [0, 1 ,2, 3, 4, 5, 6], "COLOR": 1}},
+    {"Chip":  {"COUNT": 1, "X_POSITION":  [0, 1 ,2, 3, 4, 5, 6], "Y_POSITION":   [0, 1 ,2, 3, 4, 5, 6], "COLOR": 1}},
+    {"Chip":  {"COUNT": 1, "X_POSITION":  [0, 1 ,2, 3, 4, 5, 6], "Y_POSITION":   [0, 1 ,2, 3, 4, 5, 6], "COLOR": 1}},
+    {"Chip":  {"COUNT": 1, "X_POSITION":  [0, 1 ,2, 3, 4, 5, 6], "Y_POSITION":   [0, 1 ,2, 3, 4, 5, 6], "COLOR": 1}},
+    {"Chip":  {"COUNT": 1, "X_POSITION":  [0, 1 ,2, 3, 4, 5, 6], "Y_POSITION":   [0, 1 ,2, 3, 4, 5, 6], "COLOR": 1}},
+    {"Chip":  {"COUNT": 1, "X_POSITION":  [0, 1 ,2, 3, 4, 5, 6], "Y_POSITION":   [0, 1 ,2, 3, 4, 5, 6], "COLOR": 1}},
+    {"Chip":  {"COUNT": 1, "X_POSITION":  [0, 1 ,2, 3, 4, 5, 6], "Y_POSITION":   [0, 1 ,2, 3, 4, 5, 6], "COLOR": 1}},
+    {"Chip":  {"COUNT": 6, "X_POSITION":  [0, 1 ,2, 3, 4, 5, 6], "Y_POSITION":   [0, 1 ,2, 3, 4, 5, 6], "COLOR": 2}}
+  ],
+  "AGENTS": [{"MAX_COUNT": 1, "X_POSITION":  [0, 1 ,2, 3, 4, 5, 6], "Y_POSITION":   [0, 1 ,2, 3, 4, 5, 6]},
+             {"MAX_COUNT": 1, "X_POSITION":  [0, 1 ,2, 3, 4, 5, 6], "Y_POSITION":   [0, 1 ,2, 3, 4, 5, 6]}]
+}
