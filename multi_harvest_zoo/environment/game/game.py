@@ -1,6 +1,6 @@
 import os
-from gathering_zoo.environment.game import graphic_pipeline
-from gathering_zoo.misc.game.utils import *
+from multi_harvest_zoo.environment.game import graphic_pipeline
+from multi_harvest_zoo.misc.game.utils import *
 
 import pygame
 

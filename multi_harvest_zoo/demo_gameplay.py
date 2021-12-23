@@ -1,6 +1,6 @@
-from gathering_zoo.environment.game.game import Game
+from multi_harvest_zoo.environment.game.game import Game
 
-from gathering_zoo.environment import gathering_zoo
+from multi_harvest_zoo.environment import multi_harvest_zoo
 
 
 n_agents = 1
@@ -13,8 +13,8 @@ reward_scheme = "scheme_1"
 seed = 1
 record = False
 
-parallel_env = gathering_zoo.parallel_env(level=level, num_agents=n_agents, record=record, max_steps=max_steps,
-                                          reward_scheme=reward_scheme)
+parallel_env = multi_harvest_zoo.parallel_env(level=level, num_agents=n_agents, record=record, max_steps=max_steps,
+                                              reward_scheme=reward_scheme)
 
 game = Game(parallel_env, num_humans, [], max_steps)
 store = game.on_execute()

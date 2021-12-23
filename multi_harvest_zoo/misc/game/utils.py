@@ -1,5 +1,5 @@
 import pygame
-from gathering_zoo.gathering_world.actions import *
+from multi_harvest_zoo.multi_harvest_world.actions import *
 
 
 class Color:
@@ -22,7 +22,8 @@ KeyToTuple_human1 = {
     pygame.K_DOWN: WALK_DOWN,  # 274
     pygame.K_RIGHT: WALK_RIGHT,  # 275
     pygame.K_LEFT: WALK_LEFT,  # 276
-    pygame.K_SPACE: NO_OP
+    pygame.K_SPACE: NO_OP,
+    pygame.K_f: SHOOT
 }
 
 KeyToTuple_human2 = {

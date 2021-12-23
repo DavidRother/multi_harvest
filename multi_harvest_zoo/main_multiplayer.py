@@ -1,4 +1,4 @@
-from gathering_zoo.environment import gathering_zoo
+from multi_harvest_zoo.environment import multi_harvest_zoo
 
 env_config = {
     "level": 'deterministic_room',
@@ -12,9 +12,9 @@ env_config = {
 
 done = False
 
-parallel_env = gathering_zoo.parallel_env(level=env_config["level"], num_agents=env_config["num_agents"],
-                                          record=env_config["record"], max_steps=env_config["max_steps"],
-                                          reward_scheme=env_config["reward_scheme"])
+parallel_env = multi_harvest_zoo.parallel_env(level=env_config["level"], num_agents=env_config["num_agents"],
+                                              record=env_config["record"], max_steps=env_config["max_steps"],
+                                              reward_scheme=env_config["reward_scheme"])
 
 observations = parallel_env.reset()
 

@@ -1,22 +1,9 @@
 {
-  "NUMBER_COLORS": 3,
+  "NUMBER_COLORS": 2,
   "LEVEL_LAYOUT": "       \n       \n       \n       \n       \n       \n       ",
   "STATIC_OBJECTS": [],
-  "DYNAMIC_OBJECTS": [{"Chip":  {"COUNT": 1, "X_POSITION": [0], "Y_POSITION":   [0], "COLOR": 0}},
-    {"Chip":  {"COUNT": 1, "X_POSITION":  [5], "Y_POSITION":   [0], "COLOR": 0}},
-    {"Chip":  {"COUNT": 1, "X_POSITION":  [0], "Y_POSITION":   [5], "COLOR": 0}},
-    {"Chip":  {"COUNT": 1, "X_POSITION":  [3], "Y_POSITION":   [5], "COLOR": 0}},
-    {"Chip":  {"COUNT": 1, "X_POSITION":  [2], "Y_POSITION":   [6], "COLOR": 0}},
-    {"Chip":  {"COUNT": 1, "X_POSITION":  [6], "Y_POSITION":   [4], "COLOR": 0}},
-    {"Chip":  {"COUNT": 1, "X_POSITION":  [3], "Y_POSITION":   [1], "COLOR": 0}},
-    {"Chip":  {"COUNT": 1, "X_POSITION":  [1], "Y_POSITION":   [1], "COLOR": 1}},
-    {"Chip":  {"COUNT": 1, "X_POSITION":  [0], "Y_POSITION":   [3], "COLOR": 1}},
-    {"Chip":  {"COUNT": 1, "X_POSITION":  [2], "Y_POSITION":   [2], "COLOR": 1}},
-    {"Chip":  {"COUNT": 1, "X_POSITION":  [2], "Y_POSITION":   [4], "COLOR": 1}},
-    {"Chip":  {"COUNT": 1, "X_POSITION":  [4], "Y_POSITION":   [2], "COLOR": 1}},
-    {"Chip":  {"COUNT": 1, "X_POSITION":  [4], "Y_POSITION":   [6], "COLOR": 1}},
-    {"Chip":  {"COUNT": 1, "X_POSITION":  [1], "Y_POSITION":   [5], "COLOR": 1}},
-    {"Chip":  {"COUNT": 6, "X_POSITION":  [0, 1 ,2, 3, 4, 5, 6], "Y_POSITION":   [0, 1 ,2, 3, 4, 5, 6], "COLOR": 2}}
+  "DYNAMIC_OBJECTS": [{"Crop":  {"COUNT": 1, "X_POSITION": [2], "Y_POSITION":   [1], "COLOR": 0}},
+    {"Crop":  {"COUNT": 1, "X_POSITION":  [1], "Y_POSITION":   [5], "COLOR": 1}}
   ],
   "AGENTS": [{"MAX_COUNT": 1, "X_POSITION":  [0, 1 ,2, 3, 4, 5, 6], "Y_POSITION":   [0, 1 ,2, 3, 4, 5, 6]},
              {"MAX_COUNT": 1, "X_POSITION":  [0, 1 ,2, 3, 4, 5, 6], "Y_POSITION":   [0, 1 ,2, 3, 4, 5, 6]}]

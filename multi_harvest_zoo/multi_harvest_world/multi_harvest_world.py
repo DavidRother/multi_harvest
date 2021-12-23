@@ -1,6 +1,6 @@
 from collections import defaultdict
-from gathering_zoo.gathering_world.world_objects import *
-from gathering_zoo.gathering_world.actions import *
+from multi_harvest_zoo.multi_harvest_world.world_objects import *
+from multi_harvest_zoo.multi_harvest_world.actions import *
 
 from pathlib import Path
 import os.path
@@ -8,13 +8,13 @@ import json
 import random
 
 
-class GatheringWorld:
+class MultiHarvestWorld:
 
     COLORS = ['blue', 'magenta', 'yellow', 'green']
 
     SymbolToClass = {
         ' ': Floor,
-        'x': Chip,
+        'x': Crop,
         'o': Agent
     }
 
@@ -26,8 +26,9 @@ class GatheringWorld:
         self.height = 0
         self.world_objects = defaultdict(list)
         self.num_colors = 0
-        self.chips_bags = defaultdict(list)
+        self.crops_bags = defaultdict(list)
         self.last_collected = {}
+        self.marked_squares = []
 
     def add_object(self, obj):
         self.world_objects[type(obj).__name__].append(obj)
@@ -42,53 +43,83 @@ class GatheringWorld:
         return object_list
 
     def perform_agent_actions(self, agents, actions):
+        for idx, agent in enumerate(agents):
+            if agent.freeze_timer > 0:
+                actions[idx] = NO_OP
         for agent, action in zip(agents, actions):
             if action in WALK_ACTIONS:
                 agent.change_orientation(action)
         self.last_collected = {}
+        self.marked_squares = []
         cleaned_actions = self.check_inbounds(agents, actions)
         collision_actions = self.check_collisions(agents, cleaned_actions)
         for agent, action in zip(agents, collision_actions):
             self.perform_agent_action(agent, action)
+        self.resolve_after_effects()
 
     def perform_agent_action(self, agent: Agent, action):
         if action in WALK_ACTIONS:
             self.resolve_walking_action(agent, action)
+        if action is SHOOT:
+            self.resolve_shoot_action(agent)
         # if action in INTERACT_ACTIONS:
         #     self.resolve_interaction(agent, action)
+
+    def resolve_after_effects(self):
+        for location in self.marked_squares:
+            for agent in self.agents:
+                if agent.location == location and agent.freeze_timer == 0:
+                    agent.freeze_timer = 10
+        for agent in self.agents:
+            agent.freeze_timer = max(agent.freeze_timer - 1, 0)
+        for crop in self.world_objects["Crop"]:
+            crop.age += 1
+        if self.last_collected:
+            self.respawn_fresh_crop()
+
+    def respawn_fresh_crop(self):
+        self.world_objects["Crop"] = []
+        for idx in range(0, 2):
+            collision = True
+            location = (0, 0)
+            while collision:
+                location = (random.sample(list(range(0, self.width)), 1)[0],
+                            random.sample(list(range(0, self.height)), 1)[0])
+                collision = any([agent.location == location for agent in self.agents])
+                collision = collision or any([crop.location == location for crop in self.world_objects["Crop"]])
+            self.world_objects["Crop"].append(Crop(location, idx))
+
+    def resolve_shoot_action(self, agent: Agent):
+        if agent.orientation == 1:  # left
+            self.marked_squares = [(loc, agent.location[1]) for loc in range(0, agent.location[0])]
+        if agent.orientation == 2:  # right
+            self.marked_squares = [(loc, agent.location[1]) for loc in range(agent.location[0] + 1, self.width)]
+        if agent.orientation == 3:  # down
+            self.marked_squares = [(agent.location[0], loc) for loc in range(agent.location[1] + 1, self.height)]
+        if agent.orientation == 4:  # up
+            self.marked_squares = [(agent.location[0], loc) for loc in range(0, agent.location[1])]
 
     def resolve_walking_action(self, agent: Agent, action):
         target_location = self.get_target_location(agent, action)
         if self.square_walkable(target_location):
             agent.move_to(target_location)
-            chip = self.get_chip(agent.location)
-            if chip:
-                self.last_collected[agent] = chip
-                self.world_objects["Chip"].remove(chip)
-                self.chips_bags[agent].append(chip)
+            crop = self.get_crop(agent.location)
+            if crop:
+                self.last_collected[agent] = crop
+                self.world_objects["Crop"].remove(crop)
+                self.crops_bags[agent].append(crop)
 
-    # def resolve_interaction(self, agent: Agent, action):
-    #     if action == INTERACT_PRIMARY:
-    #         self.resolve_primary_interaction(agent)
-
-    def resolve_primary_interaction(self, agent: Agent):
-        chip = self.get_chip(agent.location)
-        if chip:
-            self.last_collected[agent] = chip
-            self.world_objects["Chip"].remove(chip)
-            self.chips_bags[agent].append(chip)
-
-    def get_chip(self, position):
-        chips = [chip for chip in self.world_objects["Chip"] if chip.location == position]
-        if chips:
-            return chips[0]
+    def get_crop(self, position):
+        crops = [crop for crop in self.world_objects["Crop"] if crop.location == position]
+        if crops:
+            return crops[0]
         else:
             return None
 
     def check_inbounds(self, agents, actions):
         cleaned_actions = []
         for agent, action in zip(agents, actions):
-            if action == 0 or action == 5:
+            if action == NO_OP or action == SHOOT:
                 cleaned_actions.append(action)
                 continue
             target_location = self.get_target_location(agent, action)

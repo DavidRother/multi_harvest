@@ -1,6 +1,14 @@
 {
-  "allocation": [
-  [1, 0, -1],
-  [0, 1, -1]
-    ],
+  "allocation":
+  [
+    {
+      "young": [1, 1],
+      "mature": [5, 4]
+  },
+    {
+      "young": [1, 1],
+      "mature": [2, 4]
+    }
+  ],
+  "collectors_bonus": 0.5,
   "type": "joint"}

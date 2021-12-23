@@ -1,7 +1,10 @@
 # Other core modules
 import copy
 
-from gathering_zoo.gathering_world.gathering_world import GatheringWorld
+from multi_harvest_zoo.multi_harvest_world.multi_harvest_world import MultiHarvestWorld
+from multi_harvest_zoo.multi_harvest_world.actions import ACTIONS
+from multi_harvest_zoo.multi_harvest_world.world_objects import *
+
 
 import numpy as np
 from collections import namedtuple, defaultdict
@@ -28,7 +31,7 @@ def env(level, num_agents, record, max_steps, reward_scheme, obs_spaces=None):
     to provide sane error messages. You can find full documentation for these methods
     elsewhere in the developer documentation.
     """
-    env_init = GatheringEnvironment(level, num_agents, record, max_steps, reward_scheme, obs_spaces)
+    env_init = MultiHarvestEnvironment(level, num_agents, record, max_steps, reward_scheme, obs_spaces)
     env_init = wrappers.CaptureStdoutWrapper(env_init)
     env_init = wrappers.AssertOutOfBoundsWrapper(env_init)
     env_init = wrappers.OrderEnforcingWrapper(env_init)
@@ -38,7 +41,7 @@ def env(level, num_agents, record, max_steps, reward_scheme, obs_spaces=None):
 parallel_env = parallel_wrapper_fn(env)
 
 
-class GatheringEnvironment(AECEnv):
+class MultiHarvestEnvironment(AECEnv):
     """Environment object for Overcooked."""
 
     metadata = {'render.modes': ['human'], 'name': "cooking_zoo"}
@@ -61,12 +64,12 @@ class GatheringEnvironment(AECEnv):
         self.t = 0
         self.filename = ""
         self.set_filename()
-        self.world = GatheringWorld()
+        self.world = MultiHarvestWorld()
         self.game = None
 
         self.termination_info = ""
         self.world.load_level(level=self.level, num_agents=num_agents)
-        self.graph_representation_length = 2 + self.world.num_colors
+        self.graph_representation_length = sum([tup[1] for tup in GAME_CLASSES_STATE_LENGTH]) + 2 * self.num_agents
 
         numeric_obs_space = {'tensor': gym.spaces.Box(low=0, high=10, shape=(self.world.width, self.world.height,
                                                                              self.graph_representation_length),
@@ -74,7 +77,7 @@ class GatheringEnvironment(AECEnv):
                              'goal_vector': gym.spaces.Box(low=-10, high=10, shape=(self.world.num_colors, ),
                                                            dtype=np.int32)}
         self.observation_spaces = {agent: gym.spaces.Dict(numeric_obs_space) for agent in self.possible_agents}
-        self.action_spaces = {agent: gym.spaces.Discrete(5) for agent in self.possible_agents}
+        self.action_spaces = {agent: gym.spaces.Discrete(len(ACTIONS)) for agent in self.possible_agents}
         self.has_reset = True
 
         self.agent_name_mapping = dict(zip(self.possible_agents, list(range(len(self.possible_agents)))))
@@ -88,10 +91,12 @@ class GatheringEnvironment(AECEnv):
         self.dones = dict(zip(self.agents, [False for _ in self.agents]))
         self.infos = dict(zip(self.agents, [{} for _ in self.agents]))
         self.accumulated_actions = []
-        self.current_tensor_observation = np.zeros((self.world.width, self.world.height,
-                                                    self.graph_representation_length))
+        self.current_tensor_observation = dict(zip(self.agents, [np.zeros((self.world.width, self.world.height,
+                                                                           self.graph_representation_length))
+                                                                 for _ in self.agents]))
         self.scheme_name = reward_scheme
         self.reward_type = "default"
+        self.collectors_bonus = 0
         self.reward_scheme = self.load_reward_scheme(self.scheme_name)
 
     def set_filename(self):
@@ -101,7 +106,7 @@ class GatheringEnvironment(AECEnv):
         pass
 
     def reset(self):
-        self.world = GatheringWorld()
+        self.world = MultiHarvestWorld()
         self.t = 0
 
         # For tracking data during an episode.
@@ -130,7 +135,9 @@ class GatheringEnvironment(AECEnv):
         self.world_agent_mapping = dict(zip(self.possible_agents, self.world.agents))
         self.world_agent_to_env_agent_mapping = dict(zip(self.world.agents, self.possible_agents))
 
-        self.current_tensor_observation = self.get_tensor_representation()
+        self.current_tensor_observation = dict(zip(self.agents, [np.zeros((self.world.width, self.world.height,
+                                                                           self.graph_representation_length))
+                                                                 for _ in self.agents]))
         self.rewards = dict(zip(self.agents, [0 for _ in self.agents]))
         self._cumulative_rewards = dict(zip(self.agents, [0 for _ in self.agents]))
         self.dones = dict(zip(self.agents, [False for _ in self.agents]))
@@ -167,7 +174,8 @@ class GatheringEnvironment(AECEnv):
 
         # Get an image observation
         # image_obs = self.game.get_image_obs()
-        self.current_tensor_observation = self.get_tensor_representation()
+        for agent in self.agents:
+            self.current_tensor_observation[agent] = self.get_tensor_representation(agent)
 
         info = {"t": self.t, "termination_info": self.termination_info}
 
@@ -180,7 +188,7 @@ class GatheringEnvironment(AECEnv):
     def observe(self, agent):
         observation = []
         if "numeric" in self.obs_spaces:
-            num_observation = {'tensor': self.current_tensor_observation[self.world_agent_mapping[agent]],
+            num_observation = {'tensor': self.current_tensor_observation[agent],
                                'goal_vector': self.reward_scheme[self.world_agent_mapping[agent]]}
             observation.append(num_observation)
         if "symbolic" in self.obs_spaces:
@@ -202,45 +210,73 @@ class GatheringEnvironment(AECEnv):
             done = True
 
         for idx, agent in enumerate(self.world.agents):
+            crops_collected = len(self.world.last_collected)
             if self.reward_type == "joint":
                 for collector in self.world.agents:
                     if collector in self.world.last_collected:
-                        rewards[idx] += self.reward_scheme[agent][self.world.last_collected[collector].color]
+                        crop = self.world.last_collected[collector]
+                        if crop.age < crop.age_threshold:
+                            bonus = self.collectors_bonus if collector == agent else 0
+                            rewards[idx] += self.reward_scheme[agent]["young"][crop.color] + bonus
+                        else:
+                            rewards[idx] += self.reward_scheme[agent]["mature"][crop.color]
             else:
                 if agent in self.world.last_collected:
-                    rewards[idx] = self.reward_scheme[agent][self.world.last_collected[agent].color]
+                    crop = self.world.last_collected[agent]
+                    if crop.age < crop.age_threshold:
+                        rewards[idx] += self.reward_scheme[agent]["young"][crop.color] + self.collectors_bonus
+                    else:
+                        rewards[idx] += self.reward_scheme[agent]["mature"][crop.color]
+            rewards[idx] = rewards[idx] / max(crops_collected**2, 1)
 
         if not done:
             done = True
-            for chip in self.world.world_objects["Chip"]:
+            for crop in self.world.world_objects["Crop"]:
                 for agent in self.world.agents:
-                    if self.reward_scheme[agent][chip.color] > 0:
+                    if self.reward_scheme[agent]["young"][crop.color] > 0 or \
+                            self.reward_scheme[agent]["mature"][crop.color] > 0:
                         done = False
 
         return done, rewards, open_goals
 
-    def get_tensor_representation(self):
-        tensor_observations = {}
-        for agent in self.world.agents:
-            tensor = np.zeros((self.world.width, self.world.height, self.graph_representation_length))
-            objects = defaultdict(list)
-            objects.update(self.world.world_objects)
-            idx = 0
-            for color in range(self.world.num_colors):
-                for chip in self.world.world_objects["Chip"]:
-                    if chip.color == color:
-                        x, y = chip.location
+    def get_tensor_representation(self, agent):
+        tensor = np.zeros(
+            (self.world.width, self.world.height, self.graph_representation_length + len(self.world.agents)))
+        objects = defaultdict(list)
+        objects.update(self.world.world_objects)
+        idx = 0
+        for color in range(2):
+            for crop in self.world.world_objects["Crop"]:
+                if crop.color == color:
+                    x, y = crop.location
+                    if crop.age < crop.age_threshold:
                         tensor[x, y, idx] = 1
-                idx += 1
-            for agent_iter in self.world.agents:
-                if agent == agent_iter:
-                    x, y = agent_iter.location
-                    tensor[x, y, idx] = 1
-                else:
-                    x, y = agent_iter.location
-                    tensor[x, y, idx + 1] = 1
-            tensor_observations[agent] = tensor
-        return tensor_observations
+                    else:
+                        tensor[x, y, idx + 1] = 1
+            idx += 2
+
+        ego_agent = self.world_agent_mapping[agent]
+        x, y = ego_agent.location
+        # location map for all agents, location maps for separate agent and four orientation maps shared
+        # between all agents
+        tensor[x, y, idx] = 1
+        tensor[x, y, idx + 1] = 1
+        tensor[x, y, idx + 2] = 1 if ego_agent.freeze_timer else 0
+        tensor[x, y, idx + self.num_agents + ego_agent.orientation] = 1
+
+        agent_idx = 1
+        for world_agent in self.world.agents:
+            if agent != world_agent:
+                x, y = world_agent.location
+                # location map for all agents, location maps for separate agent and four orientation maps shared
+                # between all agents
+                tensor[x, y, idx] = 1
+                tensor[x, y, idx + 2 * agent_idx + 1] = 1
+                tensor[x, y, idx + 2 * agent_idx + 2] = 1 if world_agent.freeze_timer else 0
+                tensor[x, y, idx + self.num_agents + world_agent.orientation] = 1
+                agent_idx += 1
+
+        return tensor
 
     def load_reward_scheme(self, scheme_name):
         my_path = os.path.realpath(__file__)
@@ -255,6 +291,7 @@ class GatheringEnvironment(AECEnv):
         for agent, scheme in zip(self.world.agents, reward_object["allocation"]):
             reward_scheme[agent] = scheme
         self.reward_type = reward_object["type"]
+        self.collectors_bonus = reward_object["collectors_bonus"]
         return reward_scheme
 
     def get_agent_names(self):

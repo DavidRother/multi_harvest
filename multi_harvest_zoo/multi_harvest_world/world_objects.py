@@ -1,4 +1,4 @@
-from gathering_zoo.gathering_world.abstract_classes import *
+from multi_harvest_zoo.multi_harvest_world.abstract_classes import *
 from typing import List
 from collections import defaultdict
 
@@ -27,14 +27,17 @@ class Counter(StaticObject):
         return "counter"
 
 
-class Chip(DynamicObject):
+class Crop(DynamicObject):
 
     def __init__(self, location, color):
         super().__init__(location)
         self.color = color
+        self.age = 0
+        self.age_threshold = 10
 
     def file_name(self) -> str:
-        return f"chip_{self.color}"
+        age = "young" if self.age < self.age_threshold else "mature"
+        return f"crop_{age}_{self.color}"
 
 
 class Agent(Object):
@@ -43,10 +46,14 @@ class Agent(Object):
         super().__init__(location, False, False)
         self.color = color
         self.name = name
-        self.orientation = 0
+        self.orientation = 1
+        self.freeze_timer = 0
 
     def move_to(self, new_location):
         self.location = new_location
+
+    def change_orientation(self, new_orientation):
+        self.orientation = new_orientation
 
     def file_name(self) -> str:
         pass
@@ -55,13 +62,14 @@ class Agent(Object):
 StringToClass = {
     "Floor": Floor,
     "Counter": Counter,
-    "Chip": Chip
+    "Crop": Crop
 }
 
 ClassToString = {
     Floor: "Floor",
     Counter: "Counter",
-    Chip: "Chip"
+    Crop: "Crop"
 }
 
-
+GAME_CLASSES = [Floor, Counter, Agent, Crop]
+GAME_CLASSES_STATE_LENGTH = [(Floor, 1), (Counter, 1), (Crop, 4), (Agent, 5)]

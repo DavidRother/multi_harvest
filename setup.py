@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
-setup(name='gathering_zoo',
+setup(name='multi_harvest_zoo',
       version='0.0.1',
-      description='Gathering Environment',
+      description='Multi Harvest Environment',
       author='David Rother',
       email='rother.work@gmail.com',
       packages=find_packages() + [""],

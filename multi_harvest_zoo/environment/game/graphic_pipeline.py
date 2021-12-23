@@ -1,6 +1,6 @@
 import pygame
-from gathering_zoo.gathering_world.world_objects import *
-from gathering_zoo.misc.game.utils import *
+from multi_harvest_zoo.multi_harvest_world.world_objects import *
+from multi_harvest_zoo.misc.game.utils import *
 from collections import defaultdict, namedtuple
 
 import numpy as np
@@ -74,12 +74,27 @@ class GraphicPipeline:
 
         self.draw_dynamic_objects()
 
+        self.draw_beam()
+
         if self.display:
             pygame.display.flip()
             pygame.display.update()
 
     def draw_square(self):
         pass
+
+    def draw_beam(self):
+        for location in self.env.unwrapped.world.marked_squares:
+            sl = self.scaled_location(location)
+            rect = pygame.Rect(sl[0], sl[1], self.graphics_properties.pixel_per_tile,
+                               self.graphics_properties.pixel_per_tile)
+            color = (0, 0, 255, 127)
+            self.draw_rect_alpha(color, rect)
+
+    def draw_rect_alpha(self, color, rect):
+        shape_surf = pygame.Surface(pygame.Rect(rect).size, pygame.SRCALPHA)
+        pygame.draw.rect(shape_surf, color, shape_surf.get_rect())
+        self.screen.blit(shape_surf, rect)
 
     def draw_static_objects(self):
         objects = self.env.unwrapped.world.get_object_list()
@@ -111,6 +126,31 @@ class GraphicPipeline:
         for agent in self.env.unwrapped.world.agents:
             self.draw('agent-{}'.format(agent.color), self.graphics_properties.tile_size,
                       self.scaled_location(agent.location))
+            if agent.orientation == 1:
+                file_name = "arrow_left"
+                location = self.scaled_location(agent.location)
+                location = (location[0], location[1] + self.graphics_properties.tile_size[1] // 4)
+                size = (self.graphics_properties.tile_size[0] // 4, self.graphics_properties.tile_size[1] // 4)
+            elif agent.orientation == 2:
+                file_name = "arrow_right"
+                location = self.scaled_location(agent.location)
+                location = (location[0] + 3 * self.graphics_properties.tile_size[0] // 4,
+                            location[1] + self.graphics_properties.tile_size[1] // 4)
+                size = (self.graphics_properties.tile_size[0] // 4, self.graphics_properties.tile_size[1] // 4)
+            elif agent.orientation == 3:
+                file_name = "arrow_down"
+                location = self.scaled_location(agent.location)
+                location = (location[0] + self.graphics_properties.tile_size[0] // 4,
+                            location[1] + 3 * self.graphics_properties.tile_size[1] // 4)
+                size = (self.graphics_properties.tile_size[0] // 4, self.graphics_properties.tile_size[1] // 4)
+            elif agent.orientation == 4:
+                file_name = "arrow_up"
+                location = self.scaled_location(agent.location)
+                location = (location[0] + self.graphics_properties.tile_size[0] // 4, location[1])
+                size = (self.graphics_properties.tile_size[0] // 4, self.graphics_properties.tile_size[1] // 4)
+            else:
+                raise ValueError(f"Agent orientation invalid ({agent.orientation})")
+            self.draw(file_name, size, location)
 
     def draw(self, path, size, location):
         image_path = f'{self.root_dir}/{self.graphics_dir}/{path}.png'

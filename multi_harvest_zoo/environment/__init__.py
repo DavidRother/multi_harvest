@@ -1,2 +1,2 @@
-from gathering_zoo.environment.environment import GymGatheringEnvironment
-from gathering_zoo.environment.gathering_zoo import GatheringEnvironment as GatheringZooEnvironment
+from multi_harvest_zoo.environment.environment import GymMultiHarvestEnvironment
+from multi_harvest_zoo.environment.multi_harvest_zoo import MultiHarvestEnvironment as MultiHarvestZooEnvironment

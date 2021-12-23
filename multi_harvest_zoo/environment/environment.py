@@ -1,10 +1,10 @@
-from gathering_zoo.environment import gathering_zoo
+from multi_harvest_zoo.environment import multi_harvest_zoo
 from gym.utils import seeding
 
 import gym
 
 
-class GymGatheringEnvironment(gym.Env):
+class GymMultiHarvestEnvironment(gym.Env):
     """Environment object for Overcooked."""
 
     metadata = {'render.modes': ['human'], 'name': "cooking_zoo"}
@@ -12,9 +12,9 @@ class GymGatheringEnvironment(gym.Env):
     def __init__(self, level, record, max_steps, reward_scheme, obs_spaces=None):
         super().__init__()
         self.num_agents = 1
-        self.zoo_env = gathering_zoo.parallel_env(level=level, num_agents=self.num_agents, record=record,
-                                                  max_steps=max_steps, reward_scheme=reward_scheme,
-                                                  obs_spaces=obs_spaces)
+        self.zoo_env = multi_harvest_zoo.parallel_env(level=level, num_agents=self.num_agents, record=record,
+                                                      max_steps=max_steps, reward_scheme=reward_scheme,
+                                                      obs_spaces=obs_spaces)
         self.observation_space = self.zoo_env.observation_spaces["player_0"]
         self.action_space = self.zoo_env.action_spaces["player_0"]
 
