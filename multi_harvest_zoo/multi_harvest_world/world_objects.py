@@ -72,4 +72,4 @@ ClassToString = {
 }
 
 GAME_CLASSES = [Floor, Counter, Agent, Crop]
-GAME_CLASSES_STATE_LENGTH = [(Floor, 1), (Counter, 1), (Crop, 4), (Agent, 5)]
+GAME_CLASSES_STATE_LENGTH = [(Crop, 4), (Agent, 5)]
