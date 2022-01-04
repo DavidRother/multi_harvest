@@ -20,7 +20,7 @@ class MultiHarvestWorld:
 
     # AGENT_ACTIONS: 0: Noop, 1: Left, 2: right, 3: down, 4: up, 5: interact
 
-    def __init__(self):
+    def __init__(self, n_freeze=3, n_mature=5):
         self.agents = []
         self.width = 0
         self.height = 0
@@ -29,6 +29,8 @@ class MultiHarvestWorld:
         self.crops_bags = defaultdict(list)
         self.last_collected = {}
         self.marked_squares = []
+        self.n_freeze = n_freeze
+        self.n_mature = n_mature
 
     def add_object(self, obj):
         self.world_objects[type(obj).__name__].append(obj)
@@ -69,7 +71,7 @@ class MultiHarvestWorld:
         for location in self.marked_squares:
             for agent in self.agents:
                 if agent.location == location and agent.freeze_timer == 0:
-                    agent.freeze_timer = 10
+                    agent.freeze_timer = self.n_freeze
         for agent in self.agents:
             agent.freeze_timer = max(agent.freeze_timer - 1, 0)
         for crop in self.world_objects["Crop"]:
@@ -87,7 +89,7 @@ class MultiHarvestWorld:
                             random.sample(list(range(0, self.height)), 1)[0])
                 collision = any([agent.location == location for agent in self.agents])
                 collision = collision or any([crop.location == location for crop in self.world_objects["Crop"]])
-            self.world_objects["Crop"].append(Crop(location, idx))
+            self.world_objects["Crop"].append(Crop(location, idx, age_threshold=self.n_mature))
 
     def resolve_shoot_action(self, agent: Agent):
         if agent.orientation == 1:  # left
@@ -250,7 +252,7 @@ class MultiHarvestWorld:
                     dynamic_objects_loc = self.get_objects_at((x, y), DynamicObject)
 
                     if not dynamic_objects_loc:
-                        obj = StringToClass[name](location=(x, y), color=color)
+                        obj = StringToClass[name](location=(x, y), color=color, age_threshold=self.n_mature)
                         self.add_object(obj)
                         break
                     else:

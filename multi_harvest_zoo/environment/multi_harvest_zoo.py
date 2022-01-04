@@ -23,7 +23,7 @@ CollisionRepr = namedtuple("CollisionRepr", "time agent_names agent_locations")
 COLORS = ['blue', 'magenta', 'yellow', 'green']
 
 
-def env(level, num_agents, record, max_steps, reward_scheme, obs_spaces=None):
+def env(level, num_agents, record, max_steps, reward_scheme, obs_spaces=None, n_freeze=3, n_mature=5):
     """
     The env function wraps the environment in 3 wrappers by default. These
     wrappers contain logic that is common to many pettingzoo environments.
@@ -31,7 +31,8 @@ def env(level, num_agents, record, max_steps, reward_scheme, obs_spaces=None):
     to provide sane error messages. You can find full documentation for these methods
     elsewhere in the developer documentation.
     """
-    env_init = MultiHarvestEnvironment(level, num_agents, record, max_steps, reward_scheme, obs_spaces)
+    env_init = MultiHarvestEnvironment(level, num_agents, record, max_steps, reward_scheme, obs_spaces, n_freeze,
+                                       n_mature)
     env_init = wrappers.CaptureStdoutWrapper(env_init)
     env_init = wrappers.AssertOutOfBoundsWrapper(env_init)
     env_init = wrappers.OrderEnforcingWrapper(env_init)
@@ -46,7 +47,7 @@ class MultiHarvestEnvironment(AECEnv):
 
     metadata = {'render.modes': ['human'], 'name': "cooking_zoo"}
 
-    def __init__(self, level, num_agents, record, max_steps, reward_scheme, obs_spaces=None):
+    def __init__(self, level, num_agents, record, max_steps, reward_scheme, obs_spaces=None, n_freeze=3, n_mature=5):
         super().__init__()
 
         obs_spaces = obs_spaces or ["numeric"]
@@ -64,7 +65,7 @@ class MultiHarvestEnvironment(AECEnv):
         self.t = 0
         self.filename = ""
         self.set_filename()
-        self.world = MultiHarvestWorld()
+        self.world = MultiHarvestWorld(n_freeze, n_mature)
         self.game = None
 
         self.termination_info = ""
@@ -175,12 +176,14 @@ class MultiHarvestEnvironment(AECEnv):
         for agent in self.agents:
             self.current_tensor_observation[agent] = self.get_tensor_representation(agent)
 
+        done, rewards, goals = self.compute_rewards()
+
         info = {"t": self.t, "termination_info": self.termination_info}
 
-        done, rewards, goals = self.compute_rewards()
         for idx, agent in enumerate(self.agents):
             self.dones[agent] = done
             self.rewards[agent] = rewards[idx]
+            info["rewards_others"] = rewards[:idx] + rewards[idx+1:]
             self.infos[agent] = info
 
     def observe(self, agent):

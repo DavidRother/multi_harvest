@@ -29,11 +29,11 @@ class Counter(StaticObject):
 
 class Crop(DynamicObject):
 
-    def __init__(self, location, color):
+    def __init__(self, location, color, age_threshold=5):
         super().__init__(location)
         self.color = color
         self.age = 0
-        self.age_threshold = 10
+        self.age_threshold = age_threshold
 
     def file_name(self) -> str:
         age = "young" if self.age < self.age_threshold else "mature"
