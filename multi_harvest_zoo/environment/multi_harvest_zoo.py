@@ -23,7 +23,7 @@ CollisionRepr = namedtuple("CollisionRepr", "time agent_names agent_locations")
 COLORS = ['blue', 'magenta', 'yellow', 'green']
 
 
-def env(level, num_agents, record, max_steps, reward_scheme, obs_spaces=None, n_freeze=3, n_mature=5):
+def env(level, num_agents, record, max_steps, reward_scheme, obs_spaces=None, n_freeze=5, n_mature=8):
     """
     The env function wraps the environment in 3 wrappers by default. These
     wrappers contain logic that is common to many pettingzoo environments.
@@ -65,7 +65,9 @@ class MultiHarvestEnvironment(AECEnv):
         self.t = 0
         self.filename = ""
         self.set_filename()
-        self.world = MultiHarvestWorld(n_freeze, n_mature)
+        self.n_freeze = n_freeze
+        self.n_mature = n_mature
+        self.world = MultiHarvestWorld(self.n_freeze, self.n_mature)
         self.game = None
 
         self.termination_info = ""
@@ -105,7 +107,7 @@ class MultiHarvestEnvironment(AECEnv):
         pass
 
     def reset(self):
-        self.world = MultiHarvestWorld()
+        self.world = MultiHarvestWorld(self.n_freeze, self.n_mature)
         self.t = 0
 
         # For tracking data during an episode.
@@ -270,10 +272,14 @@ class MultiHarvestEnvironment(AECEnv):
                 x, y = world_agent.location
                 # location map for all agents, location maps for separate agent and four orientation maps shared
                 # between all agents
-                tensor[x, y, idx] = 1
-                tensor[x, y, idx + 2 * agent_idx + 1] = 1
-                tensor[x, y, idx + 2 * agent_idx + 2] = 1 if world_agent.freeze_timer else 0
-                tensor[x, y, idx + self.num_agents * 2 + world_agent.orientation] = 1
+                pos_idx = idx
+                self_pos = idx + 2 * agent_idx + 1
+                freeze_pos_idx = idx + 2 * agent_idx + 2
+                orientation_idx = idx + self.num_agents * 2 + world_agent.orientation
+                tensor[x, y, pos_idx] = 1
+                tensor[x, y, self_pos] = 1
+                tensor[x, y, freeze_pos_idx] = 1 if world_agent.freeze_timer else 0
+                tensor[x, y, orientation_idx] = 1
                 agent_idx += 1
 
         return tensor
