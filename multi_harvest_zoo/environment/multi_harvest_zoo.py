@@ -74,10 +74,9 @@ class MultiHarvestEnvironment(AECEnv):
         self.world.load_level(level=self.level, num_agents=num_agents)
         self.graph_representation_length = sum([tup[1] for tup in GAME_CLASSES_STATE_LENGTH]) + 2 * self.num_agents
 
-        numeric_obs_space = {"tensor": gym.spaces.Box(low=0, high=10, shape=(self.world.width, self.world.height,
-                                                                             self.graph_representation_length),
-                                                      dtype=np.int32)}
-        self.observation_spaces = {agent: gym.spaces.Dict(numeric_obs_space) for agent in self.possible_agents}
+        numeric_obs_space = gym.spaces.Box(low=0, high=10, shape=(self.world.width, self.world.height,
+                                                                  self.graph_representation_length), dtype=np.int32)
+        self.observation_spaces = {agent: numeric_obs_space for agent in self.possible_agents}
         self.action_spaces = {agent: gym.spaces.Discrete(len(ACTIONS)) for agent in self.possible_agents}
         self.has_reset = True
 
@@ -191,7 +190,7 @@ class MultiHarvestEnvironment(AECEnv):
     def observe(self, agent):
         observation = []
         if "numeric" in self.obs_spaces:
-            num_observation = {'tensor': self.current_tensor_observation[agent]}
+            num_observation = self.current_tensor_observation[agent]
             observation.append(num_observation)
         if "symbolic" in self.obs_spaces:
             objects = defaultdict(list)
